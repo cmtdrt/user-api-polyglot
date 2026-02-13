@@ -1,0 +1,20 @@
+# Start one API at a time:
+#   docker compose up rust   # Rust API on http://localhost:8080
+#   docker compose up go     # Go API on http://localhost:8080
+
+services:
+  rust:
+    build:
+      context: ./impl/rust
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: "no"
+
+  go:
+    build:
+      context: ./impl/go
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: "no"

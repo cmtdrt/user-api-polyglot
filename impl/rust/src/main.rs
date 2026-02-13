@@ -3,7 +3,7 @@ use axum::{routing::get, Router};
 #[tokio::main]
 async fn main() {
     let app = create_app();
-    let listener = tokio::net::TcpListener::bind("localhost:8080")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
         .await
         .expect("Failed to bind to port 8080");
 
