@@ -9,13 +9,15 @@ This is a polyglot project that contains a user API written in multiple language
 
 ## Getting started
 
-From the project root, run the API with Docker Compose and choose the language:
+From the project root, run the API and choose the language. You can use **Make** (recommended) or Docker Compose:
 
 ```bash
-# Rust API (at http://localhost:8080)
-docker compose up rust
+# With Make
+make rust    # Rust API at http://localhost:8080
+make go      # Go API at http://localhost:8080
 
-# Go API (at http://localhost:8080)
+# Or with Docker Compose
+docker compose up rust
 docker compose up go
 ```
 
