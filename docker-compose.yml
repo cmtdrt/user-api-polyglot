@@ -1,14 +1,36 @@
-# Start one API at a time:
+# Start one API at a time (PostgreSQL starts automatically):
 #   docker compose up rust   # Rust API on http://localhost:8080
 #   docker compose up go     # Go API on http://localhost:8080
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-userapi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-userapi}
+      POSTGRES_DB: ${POSTGRES_DB:-userapi}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-userapi} -d ${POSTGRES_DB:-userapi}"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
   rust:
     build:
       context: ./impl/rust
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-userapi}:${POSTGRES_PASSWORD:-userapi}@postgres:5432/${POSTGRES_DB:-userapi}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: "no"
 
   go:
@@ -17,4 +39,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-userapi}:${POSTGRES_PASSWORD:-userapi}@postgres:5432/${POSTGRES_DB:-userapi}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: "no"
+
+volumes:
+  postgres_data:
