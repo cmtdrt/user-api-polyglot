@@ -41,3 +41,14 @@ Both implementations (Rust and Go) expose the same HTTP JSON API on `http://loca
 - **GET `/users`**
   - Returns the list of users.
   - Response: `200 OK` + `[{ id, name, email, created_at }, ...]`.
+
+- **POST `/users`**
+  - Creates a new user.
+  - Request body:
+    ```json
+    {
+      "name": "Alice",
+      "email": "alice@example.com"
+    }
+    ```
+  - Response: `201 Created` + the created user.
