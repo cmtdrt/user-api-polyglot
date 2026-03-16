@@ -48,6 +48,7 @@ func main() {
 	app := &App{db: pool}
 
 	http.HandleFunc("/users", app.handleUsers)
+	http.HandleFunc("/users/", app.handleUserByID)
 
 	log.Println("Go API listening on http://0.0.0.0:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
@@ -61,6 +62,25 @@ func (a *App) handleUsers(w http.ResponseWriter, r *http.Request) {
 		a.listUsers(w, r)
 	case http.MethodPost:
 		a.createUser(w, r)
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (a *App) handleUserByID(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Path[len("/users/"):]
+	if id == "" {
+		http.Error(w, "missing id", http.StatusBadRequest)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		a.getUser(w, r, id)
+	case http.MethodPut:
+		a.updateUser(w, r, id)
+	case http.MethodDelete:
+		a.deleteUser(w, r, id)
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -87,6 +107,18 @@ func (a *App) listUsers(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, users)
 }
 
+func (a *App) getUser(w http.ResponseWriter, r *http.Request, id string) {
+	var u User
+	err := a.db.QueryRow(r.Context(), `SELECT id, name, email, created_at FROM users WHERE id = $1`, id).
+		Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt)
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, u)
+}
+
 func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
 	var payload NewUser
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -107,6 +139,58 @@ func (a *App) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, u)
+}
+
+func (a *App) updateUser(w http.ResponseWriter, r *http.Request, id string) {
+	var payload UpdateUser
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	var current User
+	err := a.db.QueryRow(r.Context(), `SELECT id, name, email, created_at FROM users WHERE id = $1`, id).
+		Scan(&current.ID, &current.Name, &current.Email, &current.CreatedAt)
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	name := current.Name
+	if payload.Name != nil {
+		name = *payload.Name
+	}
+	email := current.Email
+	if payload.Email != nil {
+		email = *payload.Email
+	}
+
+	var u User
+	err = a.db.QueryRow(
+		r.Context(),
+		`UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING id, name, email, created_at`,
+		name, email, id,
+	).Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt)
+	if err != nil {
+		http.Error(w, "database error", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, u)
+}
+
+func (a *App) deleteUser(w http.ResponseWriter, r *http.Request, id string) {
+	cmd, err := a.db.Exec(r.Context(), `DELETE FROM users WHERE id = $1`, id)
+	if err != nil {
+		http.Error(w, "database error", http.StatusInternalServerError)
+		return
+	}
+	if cmd.RowsAffected() == 0 {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
