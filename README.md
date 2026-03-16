@@ -67,3 +67,7 @@ Both implementations (Rust and Go) expose the same HTTP JSON API on `http://loca
     }
     ```
   - Response: `200 OK` + updated user, or `404 Not Found` if the user does not exist.
+
+- **DELETE `/users/{id}`**
+  - Deletes a user.
+  - Response: `204 No Content` if deleted, or `404 Not Found` if the user does not exist.
