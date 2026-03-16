@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type User struct {
@@ -22,6 +24,10 @@ type NewUser struct {
 type UpdateUser struct {
 	Name  *string `json:"name"`
 	Email *string `json:"email"`
+}
+
+type App struct {
+	db *pgxpool.Pool
 }
 
 func main() {
