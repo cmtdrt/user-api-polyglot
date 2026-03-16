@@ -52,3 +52,7 @@ Both implementations (Rust and Go) expose the same HTTP JSON API on `http://loca
     }
     ```
   - Response: `201 Created` + the created user.
+
+- **GET `/users/{id}`**
+  - Returns a single user by its UUID.
+  - Response: `200 OK` + user, or `404 Not Found` if the user does not exist.
