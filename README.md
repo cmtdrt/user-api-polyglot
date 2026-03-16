@@ -56,3 +56,14 @@ Both implementations (Rust and Go) expose the same HTTP JSON API on `http://loca
 - **GET `/users/{id}`**
   - Returns a single user by its UUID.
   - Response: `200 OK` + user, or `404 Not Found` if the user does not exist.
+
+- **PUT `/users/{id}`**
+  - Updates an existing user. All fields are optional (partial update).
+  - Request body example:
+    ```json
+    {
+      "name": "Alice Smith",
+      "email": "alice.smith@example.com"
+    }
+    ```
+  - Response: `200 OK` + updated user, or `404 Not Found` if the user does not exist.
