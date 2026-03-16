@@ -33,3 +33,11 @@ PostgreSQL 16 runs in Docker and is common to all language implementations.
 - **Env in APIs:** `DATABASE_URL` is set automatically when running with Docker Compose.
 
 Schema and migrations can be added in `database/init.sql`.
+
+## API endpoints
+
+Both implementations (Rust and Go) expose the same HTTP JSON API on `http://localhost:8080`:
+
+- **GET `/users`**
+  - Returns the list of users.
+  - Response: `200 OK` + `[{ id, name, email, created_at }, ...]`.
