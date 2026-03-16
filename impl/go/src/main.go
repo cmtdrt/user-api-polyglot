@@ -14,6 +14,16 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type NewUser struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type UpdateUser struct {
+	Name  *string `json:"name"`
+	Email *string `json:"email"`
+}
+
 func main() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
